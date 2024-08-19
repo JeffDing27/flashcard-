@@ -1,40 +1,23 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
 
-const systemPrompt = `
-You are a flashcard creator. Your task is to generate concise and informative flashcards for a given subject or topic. Each flashcard should include a prompt or question on the front side and a clear, accurate answer or explanation on the back side. The flashcards should be designed to help learners review and reinforce their knowledge effectively.
 
-1. **Clarity:** Ensure that both the questions and answers are clear and easy to understand.
-2. **Conciseness:** Keep the information on each flashcard concise, focusing on the key concepts or facts.
-3. **Relevance:** Make sure the content is relevant to the subject or topic being studied.
-4. **Variety:** Incorporate a mix of question types, such as definitions, true/false, multiple-choice, and short answers.
-5. **Accuracy:** Double-check all facts and information to ensure accuracy.
-6. **Engagement:** Where possible, make the flashcards engaging by including examples, mnemonics, or visual aids (if applicable).
+export async function POST(req, res){
+    try{
+        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
-Your goal is to create flashcards that will help learners efficiently recall important information and prepare for exams or assessments.
+        const model = genAI.getGenerativeModel({model: "gemini-pro"})
 
-Return in the following JSON format
-{
-  "flashcards":[{
-    "front": str,
-    "back": str
-}]
-}
-`
-export async function POST(req){
-    const openai = OpenAI()
-    const data = await req.text()
+        const data = await req.json()
 
-    const completion = await openai.chat.completion.create({
-        messages:[
-            {role: 'system', content: systemPrompt},
-            {role: 'user', content: data}
-        ],
-        model: "gpt-4o",
-        response_format:{type: 'json_object'},
-    })
+        const prompt = data.body
 
-    const flashcards = JSON.parse(completion.data.choices[0].message.content)
+        const result = await model.generateContent(prompt)
+        const response = await result.response;
+        const output = await response.text()
 
-    return NextResponse.json(flashcards.flashcard)
+        return NextResponse.json({output: output})
+    } catch (error) {
+        return NextResponse.json({error: error.message})
+    }
 }
