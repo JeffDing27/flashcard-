@@ -16,6 +16,8 @@ import {
   DialogTitle,
   DialogContentText,
   Dialog,
+  Grid,
+  CardContent,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -31,12 +33,25 @@ export default function Generate() {
   const router = useRouter();
 
   const handleSubmit = async () => {
-    fetch("api/generate", {
-      method: "POST",
-      body: text,
-    })
-      .then((res) => res.json())
-      .then((data) => setFlashcards(data));
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ body: text }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Generate API network response was not ok");
+      }
+  
+      const data = await response.json();
+      console.log(data);
+      setFlashcards(data?.output || []);
+    } catch (error) {
+      console.error("Error:", error);
+    }
   };
 
   const handleCardClick = (id) => {
@@ -95,7 +110,7 @@ export default function Generate() {
           alignItems: "center",
         }}
       >
-        <Typography variant="h4">Gernerate Flashcards</Typography>
+        <Typography variant="h4">Generate Flashcards</Typography>
         <Paper sx={{ p: 4, width: "100%" }}>
           <TextField
             value={text}
@@ -117,7 +132,7 @@ export default function Generate() {
           </Button>
         </Paper>
       </Box>
-      {flashcards.length > 0 && (
+      {flashcards?.length > 0 && (
         <Box sx={{ mt: 4 }}>
           <Typography variant="h5">Flashcards Preview</Typography>
           <Grid container spacing={3}>
@@ -157,7 +172,7 @@ export default function Generate() {
                             boxSizing: "border-box",
                           },
                           "& > div > div:nth-of-type(2)": {
-                            tranform: "rotateY(180deg)",
+                            transform: "rotateY(180deg)",
                           },
                         }}
                       >
