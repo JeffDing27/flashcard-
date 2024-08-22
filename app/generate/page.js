@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { writeBatch, doc, collection, getDoc } from "firebase/firestore";
+import { writeBatch, doc, collection, getDoc, setDoc } from "firebase/firestore";
 
 export default function Generate() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -60,12 +60,15 @@ export default function Generate() {
       [id]: !prev[id],
     }));
   };
+
   const handleOpen = () => {
     setOpen(true);
   };
+
   const handleClose = () => {
     setOpen(false);
   };
+
   const saveFlashcards = async () => {
     if (!name) {
       alert("Please enter a name");
@@ -73,8 +76,9 @@ export default function Generate() {
     }
     const batch = writeBatch(db);
     const userDocRef = doc(collection(db, "users"), user.id);
+    const flashcardsCollectionRef = collection(userDocRef, "flashcards");
     const docSnap = await getDoc(userDocRef);
-
+  
     if (docSnap.exists()) {
       const collections = docSnap.data().flashcards || [];
       if (collections.find((f) => f.name === name)) {
@@ -87,13 +91,10 @@ export default function Generate() {
     } else {
       batch.set(userDocRef, { flashcards: [{ name }] });
     }
-
-    const colRef = collection(userDocRef, name);
-    flashcards.forEach((flashcard) => {
-      const cardDocREf = doc(colRef);
-      batch.set(cardDocREf, flashcard);
-    });
-
+  
+    const deckDocRef = doc(flashcardsCollectionRef);
+    batch.set(deckDocRef, { [name]: flashcards });
+  
     await batch.commit();
     handleClose();
     router.push("/flashcards");

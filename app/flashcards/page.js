@@ -27,10 +27,20 @@ export default function ViewFlashcards() {
   const fetchFlashcards = async () => {
     try {
       const userDocRef = doc(collection(db, "users"), user.id);
-      const colRef = collection(userDocRef, "flashcards");
-      const querySnapshot = await getDocs(colRef);
-      const flashcardsData = querySnapshot.docs.map((doc) => doc.data());
-      setFlashcards(flashcardsData);
+      const flashcardsCollectionRef = collection(userDocRef, "flashcards");
+      const querySnapshot = await getDocs(flashcardsCollectionRef);
+      let allFlashcards = [];
+  
+      querySnapshot.forEach((doc) => {
+        const flashcardsData = doc.data();
+        Object.values(flashcardsData).forEach((deck) => {
+          if (Array.isArray(deck)) {
+            allFlashcards = [...allFlashcards, ...deck];
+          }
+        });
+      });
+  
+      setFlashcards(allFlashcards);
     } catch (error) {
       console.error("Error fetching flashcards:", error);
     }
