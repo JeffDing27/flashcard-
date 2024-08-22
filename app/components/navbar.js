@@ -4,6 +4,7 @@ import {
   Toolbar,
   Typography,
   Button,
+  Link as MuiLink,
 } from "@mui/material";
 import Link from "next/link";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
@@ -19,22 +20,29 @@ export default function Navbar() {
               flexGrow: 1,
             }}
           >
-            Flashcard Saas{" "}
+            <MuiLink component={Link} href="/" color="inherit" underline="none">
+              Flashcard Buddy
+            </MuiLink>
           </Typography>
           <SignedIn>
+            <Button color="inherit" sx={{ marginRight: '16px' }}>
+              <MuiLink component={Link} href="/generate" color="inherit" underline="none">
+                Create
+              </MuiLink>
+            </Button>
             <UserButton />
           </SignedIn>
           <SignedOut>
-          <Button color="inherit">
-            <Link href="/sign-in" passHref>
-              Log in
-            </Link>
-          </Button>
-          <Button color="inherit">
-            <Link href="/sign-up" passHref>
-              Sign up
-            </Link>
-          </Button>
+            <Button color="inherit">
+              <MuiLink component={Link} href="/sign-in" color="inherit" underline="none">
+                Log in
+              </MuiLink>
+            </Button>
+            <Button color="inherit">
+              <MuiLink component={Link} href="/sign-up" color="inherit" underline="none">
+                Sign up
+              </MuiLink>
+            </Button>
           </SignedOut>
         </Toolbar>
       </AppBar>
